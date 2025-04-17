@@ -1,14 +1,17 @@
 #########################################################################
-#   Implementation of: "Improved Decoding Algorithm of BD-LRPC Codes"
+#    "Improved Decoding Algorithm of BD-LRPC Codes"
 #########################################################################
-#  
-# We have implemented the new decoding algorithm of BD-LRPC codes
 #
-#  Implematation is done in SageMath  (https://www.sagemath.org/)
-#
-# Hermann Tchatchiem Kamche (hermann.tchatchiem@gmail.com) 
+#   Hermann Tchatchiem Kamche (hermann.tchatchiem@gmail.com) 
 #
 #                   April 2025
+#
+#
+# Implemented the new decoding algorithm of BD-LRPC codes
+#########################################################################
+#
+# Implematation is done in SageMath  (https://www.sagemath.org/)
+# 
 #
 N=1000 # Number of simulation. For the following parameters, choose N=100000 to get a good approximation 
 r=8   # the rank of error
