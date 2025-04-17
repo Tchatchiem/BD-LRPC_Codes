@@ -6,7 +6,7 @@
 #
 #                   April 2025
 #
-# Comparison of the upper bound of the decoding failure probability for 'd=2' and 't=2'
+# Comparison of the upper bounds of the decoding failure probability for 'd=2' and 't=2'
 ###################################################################################
 #
 # Implematation is done in SageMath  (https://www.sagemath.org/)
