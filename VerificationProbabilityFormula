@@ -8,7 +8,9 @@
 #
 # Verification of the formula for calculating the probability 'P_t' for 't=2' and 'd=2'
 ###################################################################################
-#  
+#
+# Implematation is done in SageMath  (https://www.sagemath.org/)
+#
 # n=the length of the linear code
 # k=the dimension of the linear code
 # w=n-k
