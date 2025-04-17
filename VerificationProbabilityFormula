@@ -1,0 +1,73 @@
+#########################################################################
+#   "Improved Decoding Algorithm of BD-LRPC Codes"
+#########################################################################
+# 
+# Hermann Tchatchiem Kamche (hermann.tchatchiem@gmail.com) 
+#
+#                   April 2025
+#
+# Verification of the formula for calculating the probability 'P_t' for 't=2' and 'd=2'
+###################################################################################
+#  
+# n=the length of the linear code
+# k=the dimension of the linear code
+# w=n-k
+# r=the rank of error
+#
+def ProbTheo(r,w):
+    """
+    Exact theoretical formula for calculating The probability 'P_t'
+    """
+    u=w-r
+    ur=min([u,r])
+    r1=ceil(r/2)
+    D=product([1-q^(-(w)+i) for i in range(r)])*sum([q^(-u*r)*product([(q^u-q^i)*(q^r-q^i)/(q^v-q^i) for i in range(v)])*
+                                                     q^(-v*(r-v))*product([q^v-q^i for i in range(r-v)]) for v in [r1..ur]]) 
+    return D
+#
+def ProbCal(r,w):
+    """
+    Calculation of the exact value of the probability 'P_t' using the computer
+    """
+    Fq=GF(q)
+    MS3 = MatrixSpace(Fq,w,2*r)
+    O=matrix(Fq,w,r)
+    N1=0
+    for X in MS3:
+        if rank(block_matrix([[block_matrix([[X,O]])],[block_matrix([[O,X]])]]))==3*r:
+            N1=N1+1
+    return N1/q^(w*2*r)
+#
+def ProbSimu(r,w,N):
+    """
+    Simulation of the probability 'P_t' for 'N' random matrices
+    """
+    Fq=GF(q)
+    O=matrix(Fq,w,r)
+    N1=0
+    for i in range(N):
+        X=random_matrix(Fq,w,2*r)
+        if rank(block_matrix([[block_matrix([[X,O]])],[block_matrix([[O,X]])]]))==3*r:
+            N1=N1+1
+    return N1/N
+#
+# 
+# Example 1 : Exact Value 
+#
+q=2
+w=3 # w=n-k  Condition 2*w>=3*r
+r=2
+print('Example 1: Exact Value ')
+print('The exact value of P_t using the computer is:',ProbCal(r,w))
+print('The exact value of P_t using the theoretical formula is:',ProbTheo(r,w))   
+#
+#
+# Example 2: Simulation for N random matrices
+#
+N=10000
+q=2
+w=3 # w=n-k  Condition 2*w>=3*r
+r=2
+print('Example 2: Simulation for N random matrices')
+print('The Simulation of P_t for N random matrices is :',ProbSimu(r,w,N).n())
+print('The exact value of P_t using the theoretical formula is:',ProbCal(r,w).n()) 
