@@ -1,2 +1,159 @@
-Source Codes of
-22
+#########################################################################
+#   Implementation of: "Improved Decoding Algorithm of BD-LRPC Codes"
+#########################################################################
+#  
+# We have implemented the new decoding algorithm of BD-LRPC codes
+#
+#  Implematation is done in SageMath  (https://www.sagemath.org/)
+#
+# Hermann Tchatchiem Kamche (hermann.tchatchiem@gmail.com) 
+#
+#                   April 2025
+#
+N=1000 # Number of simulation. For the following parameters, choose N=100000 to get a good approximation 
+r=8   # the rank of error
+m=37  # the degree of Galois extension
+n=32  # the length of the linear code 
+k=16  # the dimension of the linear code
+t=2   # the parameter of the expansion of the syndrome support
+d=2   # the rank of the support of the BD-LRPC code 
+q=2   # the cardinality of the finite field
+# Conditions: r*(d+t)<=m and r*(d+t-1)<=t*(n-k)
+#
+Fq=GF(q)  # the finite field
+Fqm.<a>=GF(q^m)  # Galois extension
+a1=a^-1  
+b=[a^i for i in range(m)]  # a basis of 'Fqm' as a vector space over 'Fq'
+V =matrix(Fqm,[a^i for i in range(d)]) # a basis of the support of the BD-LRPC code
+VSpace = VectorSpace(Fq,m)
+#
+def IntersectionOf(U,W):
+    """
+    Intersection of two subspaces with bases 'U' and 'W'
+    """
+    VU=VSpace.subspace([vector(U[0,j]) for j in range(U.ncols())])
+    VW=VSpace.subspace([vector(W[0,j]) for j in range(W.ncols())])
+    VUintW=VU.intersection(VW)
+    if VUintW.dimension()==0:
+        return False
+    else:
+        UintW=matrix(Fqm,b)*(VUintW.basis_matrix().transpose())
+        return UintW
+#
+def MultiIntersectionOf(U,w):
+    W=U
+    i=0
+    Good_Inter=True
+    while Good_Inter and i<w-1:
+        W=IntersectionOf(a1*W,W)
+        if W==False:
+            Good_Inter=False
+        else:
+            i=i+1
+    if Good_Inter:
+        return W
+    else:
+        return False
+#
+def ParityCheckMatrixBDLRPC(n,k,d):
+    """
+    Construction of the parity check matrix of the BD-LRPC codes over 'Fqm'
+    """
+    Good_H=True
+    while Good_H: # maximal-row-span property and unity property
+        Hext0=random_matrix(Fq, d, n, algorithm='echelonizable', rank=d)
+        Hext=Hext0
+        for _ in [1..n-k-1]:
+            Hext0=random_matrix(Fq, d, n, algorithm='echelonizable', rank=d)
+            Hext=block_matrix([[Hext],[Hext0]])
+        if rank(Hext)==n : # unique-decoding property 
+            H=(V.tensor_product(identity_matrix(n-k)))*matrix(Fqm,Hext)
+            if rank(H)==n-k:
+                Good_H=false
+    InN=block_matrix([[identity_matrix(Fq,n)],[matrix(Fq,(n-k)*d-n,n)]])
+    Hext_1=Hext.solve_left(InN) # Hext_1 is the left inversion of Hext
+    return [H,Hext_1]
+#
+def RandomErrorOfRankt(r):
+    """
+    Generate a random error of rank 'r'
+    """
+    E1=random_matrix(Fq, m, r, algorithm='echelonizable', rank=r)
+    E2=random_matrix(Fq, r, n, algorithm='echelonizable', rank=r)
+    return matrix(Fqm,b)*E1*E2
+#
+def DecodingOf(e):
+    """
+    Implementation of the decoding algorithm
+    """
+    sy=e*H.transpose()
+    if sy==matrix(Fqm,[0 for _ in range(n-k)]):
+        return False
+    else:
+        Vtsy=matrix(Fqm,[a^i for i in range(t)]).tensor_product(sy)
+        E=MultiIntersectionOf(Vtsy,d+t-1)
+        if E==False:
+            return False
+        else:
+            r3=E.ncols()
+            VE=E.tensor_product(V)
+            MVE=matrix(Fq, [vector(VE[0,j]).list() for j in range(VE.ncols())]).transpose()
+            SY=matrix(Fq, [vector(sy[0,j]).list() for j in range(sy.ncols())]).transpose() 
+            try:
+                SY1=MVE.solve_right(SY)
+            except ValueError : 
+                SY1=false
+            if SY1==False:
+                return False
+            else:
+                SY2=block_matrix([[SY1[i,:] for i in [d*j..d*(j+1)-1]] for j in [0..r3-1] ] ).transpose()
+                E2=Hext_1*SY2
+                if E2[n:,:]!=matrix(Fq,(n-k)*d-n, SY2.ncols()) :
+                    return False
+                else:
+                    E3=E2[0:n,:]
+                    e4=E*(E3.transpose())
+                    if e4==e:
+                        return True
+                    else:
+                        return False
+#
+def SimulationOfFailureProbability(N,r):
+    """
+    Simulation of the failure probability
+    'N' the number of simulation
+    'r' the rank of error
+    """
+    N1=0
+    for _ in range(N):
+        e=RandomErrorOfRankt(r)
+        if DecodingOf(e):
+            N1=N1+1
+    return RR((N-N1)/N)
+#
+def UpperBoundOfFailureProbability(r,t,d):
+    """
+    Calculation of an upper bound of the failure probability  
+    """
+    if r==t and d==2:
+        u=n-k-r
+        P1=product([1-q^(-(n-k)+i) for i in range(r)])*product([1-q^(-i) for i in [u..r+u-1]])
+        P=1-(1-q^(r*(d+t))/(q^m-q^(r-1)))*P1
+        return P.n()
+    else:
+        if t==2 and d==2:
+            u=n-k-r
+            ur=min([u,r])
+            r1=ceil(r/2)
+            P1=product([1-q^(-(n-k)+i) for i in range(r)])
+            P2=sum([q^(-u*r)*product([(q^u-q^i)*(q^r-q^i)/(q^v-q^i) for i in range(v)])*q^(-v*(r-v))*product([q^v-q^i for i in range(r-v)]) for v in [r1..ur]]) 
+            P=1-(1-q^(r*(d+t))/(q^m-q^(r-1)))*P1*P2
+            return P.n()
+        else:
+            return 'The upper bound is not defined for these parameters'
+#
+[H,Hext_1]=ParityCheckMatrixBDLRPC(n,k,d)
+ProbaSimu=SimulationOfFailureProbability(N,r)
+ProbaUB=UpperBoundOfFailureProbability(r,t,d)
+print('Simulation :',ProbaSimu)
+print('TheoreticalEstimate:',ProbaUB)
