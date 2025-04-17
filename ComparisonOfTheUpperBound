@@ -1,0 +1,68 @@
+#########################################################################
+#   "Improved Decoding Algorithm of BD-LRPC Codes"
+#########################################################################
+# 
+# Hermann Tchatchiem Kamche (hermann.tchatchiem@gmail.com) 
+#
+#                   April 2025
+#
+# Comparison of the upper bound of the decoding failure probability for 'd=2' and 't=2'
+###################################################################################
+#
+# In the following, we have the source code for comparing the theoretical upper bound of 
+# the failure probability of Algorithm 1 with that of Franch and Li (2025), 
+# and Gaborit et al. (2013) when 'd=2' and 't=2'.
+#
+# t=the parameter of the expansion of the syndrome support
+# d=the rank of the support of the BD-LRPC code
+# r=the rank of error
+#
+#
+m=37  # the degree of Galois extension
+n=32  # the length of the linear code 
+k=16  # the dimension of the linear code
+q=2   # the cardinality of the finite field
+#
+#
+def ProbaNew(r):
+    """
+    Upper bound of the decoding failure probability of Algorithm 1
+    """
+    if 3*r>2*(n-k) or 4*r>m: 
+        return 1
+    else:
+        u=n-k-r
+        ur=min([u,r])
+        r1=ceil(r/2)
+        D=product([1-q^(-(n-k)+i) for i in range(r)])*sum([q^(-u*r)*product([(q^u-q^i)*(q^r-q^i)/(q^v-q^i) for i in range(v)])*
+                                                           q^(-v*(r-v))*product([q^v-q^i for i in range(r-v)]) for v in [r1..ur]]) 
+        P=1-(1-q^(r*(d+t))/(q^m-q^(r-1)))*D  
+        return round(P, ndigits=5)
+#
+def PrbaFL(r):
+    """
+    Upper bound of the decoding failure probability of Franch and Li (2025)
+    """
+    if 3*r>2*(n-k) or 5*r>m:
+        return 1
+    else:
+        u=n-k-r
+        ur=min([u,r])
+        r1=ceil(r/2)
+        D=product([1-q^(-(n-k)+i) for i in range(r)])*sum([q^(-u*r)*product([(q^u-q^i)*(q^r-q^i)/(q^v-q^i) for i in range(v)])*
+                                                           q^(-v*(r-v))*product([q^v-q^i for i in range(r-v)]) for v in [r1..ur]]) 
+        P5=1-(1-q^(-m+5*r))*D
+        return round(P5, ndigits=5) 
+#
+def ProbaG(r):
+    """
+    Upper bound of the decoding failure probability of  Gaborit et al. (2013)
+    """
+    if 2*r>n-k or 3*r>m :
+        return 1
+    else:
+        P=q^(3*r)/(q^m-q^(r-1))+q^(2*r)/(q^m-q^(r-1))+q^(-(n-k)+2*r)/(q-1)
+        return round(P, ndigits=5) 
+#
+L=[['r','New','LF','G']]+[[r,ProbaNew(r),PrbaFL(r),ProbaG(r)] for r in [1..10]]
+print(table(L))
