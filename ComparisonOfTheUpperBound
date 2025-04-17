@@ -9,6 +9,8 @@
 # Comparison of the upper bound of the decoding failure probability for 'd=2' and 't=2'
 ###################################################################################
 #
+# Implematation is done in SageMath  (https://www.sagemath.org/)
+#
 # In the following, we have the source code for comparing the theoretical upper bound of 
 # the failure probability of Algorithm 1 with that of Franch and Li (2025), 
 # and Gaborit et al. (2013) when 'd=2' and 't=2'.
