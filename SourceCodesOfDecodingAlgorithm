@@ -7,7 +7,7 @@
 #                   April 2025
 #
 #
-# Implemented the new decoding algorithm of BD-LRPC codes
+# Implementation of  the new decoding algorithm of BD-LRPC codes
 #########################################################################
 #
 # Implematation is done in SageMath  (https://www.sagemath.org/)
